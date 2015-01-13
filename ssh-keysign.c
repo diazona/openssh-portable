@@ -53,6 +53,8 @@
 #include "readconf.h"
 #include "uidswap.h"
 
+#define DEBUG_SSH_KEYSIGN 1
+
 /* XXX readconf.c needs these */
 uid_t original_real_uid;
 
@@ -159,6 +161,10 @@ main(int argc, char **argv)
 	u_int slen, dlen;
 	u_int32_t rnd[256];
 
+#ifdef DEBUG_SSH_KEYSIGN
+	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 1);
+#endif
+
 	/* Ensure that stdin and stdout are connected */
 	if ((fd = open(_PATH_DEVNULL, O_RDWR)) < 2)
 		exit(1);
@@ -167,10 +173,22 @@ main(int argc, char **argv)
 		close(fd);
 
 	i = 0;
-	key_fd[i++] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
-	key_fd[i++] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
+	debug3("attempting to open %s", _PATH_HOST_DSA_KEY_FILE);
+	key_fd[i] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	i++;
+	debug3("attempting to open %s", _PATH_HOST_ECDSA_KEY_FILE);
+	key_fd[i] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	i++;
+	debug3("attempting to open %s", _PATH_HOST_ED25519_KEY_FILE);
+	key_fd[i] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	i++;
+	debug3("attempting to open %s", _PATH_HOST_RSA_KEY_FILE);
+	key_fd[i] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	i++;
 
 	original_real_uid = getuid();	/* XXX readconf.c needs this */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
@@ -181,10 +199,6 @@ main(int argc, char **argv)
 
 	seed_rng();
 
-#ifdef DEBUG_SSH_KEYSIGN
-	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 0);
-#endif
-
 	/* verify that ssh-keysign is enabled by the admin */
 	initialize_options(&options);
 	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", &options, 0);
@@ -194,8 +208,10 @@ main(int argc, char **argv)
 		    _PATH_HOST_CONFIG_FILE);
 
 	for (i = found = 0; i < NUM_KEYTYPES; i++) {
-		if (key_fd[i] != -1)
+		if (key_fd[i] != -1) {
 			found = 1;
+			debug3("found key at index %d", i);
+		}
 	}
 	if (found == 0)
 		fatal("could not open any host key");

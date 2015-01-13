@@ -422,6 +422,7 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 	int r;
 	Key *ret = NULL;
 
+	debug3("key_load_private_type: loading from %s", filename);
 	if ((r = sshkey_load_private_type(type, filename, passphrase,
 	    &ret, commentp, perm_ok)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);

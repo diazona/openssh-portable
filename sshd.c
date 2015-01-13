@@ -1553,8 +1553,10 @@ main(int ac, char **av)
 	}
 	if (rexeced_flag || inetd_flag)
 		rexec_flag = 0;
+	/*
 	if (!test_flag && (rexec_flag && (av[0] == NULL || *av[0] != '/')))
 		fatal("sshd re-exec requires execution with an absolute path");
+	*/
 	if (rexeced_flag)
 		closefrom(REEXEC_MIN_FREE_FD);
 	else

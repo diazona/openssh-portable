@@ -70,6 +70,7 @@
 #include "pathnames.h"
 #include "uidswap.h"
 #include "hostfile.h"
+#include "sshkey.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -1441,6 +1442,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 			fatal("ssh_keysign: dup2: %s", strerror(errno));
 		close(from[1]);
 		close(to[0]);
+		debug3("ssh_keysign: exec'ing path %s", _PATH_SSH_KEY_SIGN);
 		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *) 0);
 		fatal("ssh_keysign: exec(%s): %s", _PATH_SSH_KEY_SIGN,
 		    strerror(errno));
@@ -1490,9 +1492,17 @@ userauth_hostbased(Authctxt *authctxt)
 	int ok, i, found = 0;
 
 	/* check for a useful key */
+	debug3("userauth_hostbased: checking a total of %d keys", sensitive->nkeys);
 	for (i = 0; i < sensitive->nkeys; i++) {
 		private = sensitive->keys[i];
+		if (!private) {
+			debug3("userauth_hostbased: key %d is NULL", i);
+		}
+		else {
+			debug3("userauth_hostbased: type of key %d is %s", i, sshkey_type(private));
+		}
 		if (private && private->type != KEY_RSA1) {
+			debug3("userauth_hostbased: proceeding with key %d", i);
 			found = 1;
 			/* we take and free the key */
 			sensitive->keys[i] = NULL;
