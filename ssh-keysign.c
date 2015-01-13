@@ -173,21 +173,21 @@ main(int argc, char **argv)
 		close(fd);
 
 	i = 0;
-	debug3("attempting to open %s", _PATH_HOST_DSA_KEY_FILE);
+	debug3("attempting to open %s (index %d)", _PATH_HOST_DSA_KEY_FILE, i);
 	key_fd[i] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
-	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure errno=%d", errno);
 	i++;
-	debug3("attempting to open %s", _PATH_HOST_ECDSA_KEY_FILE);
+	debug3("attempting to open %s (index %d)", _PATH_HOST_ECDSA_KEY_FILE, i);
 	key_fd[i] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
-	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure errno=%d", errno);
 	i++;
-	debug3("attempting to open %s", _PATH_HOST_ED25519_KEY_FILE);
+	debug3("attempting to open %s (index %d)", _PATH_HOST_ED25519_KEY_FILE, i);
 	key_fd[i] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
-	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure errno=%d", errno);
 	i++;
-	debug3("attempting to open %s", _PATH_HOST_RSA_KEY_FILE);
+	debug3("attempting to open %s (index %d)", _PATH_HOST_RSA_KEY_FILE, i);
 	key_fd[i] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
-	debug3(key_fd[i] >= 0 ? "...success" : "...failure %d", errno);
+	debug3(key_fd[i] >= 0 ? "...success" : "...failure errno=%d", errno);
 	i++;
 
 	original_real_uid = getuid();	/* XXX readconf.c needs this */
@@ -210,7 +210,7 @@ main(int argc, char **argv)
 	for (i = found = 0; i < NUM_KEYTYPES; i++) {
 		if (key_fd[i] != -1) {
 			found = 1;
-			debug3("found key at index %d", i);
+			debug3("found key (index %d)", i);
 		}
 	}
 	if (found == 0)
@@ -222,6 +222,7 @@ main(int argc, char **argv)
 
 	found = 0;
 	for (i = 0; i < NUM_KEYTYPES; i++) {
+		debug3("attempting to load key at index %d", i);
 		keys[i] = NULL;
 		if (key_fd[i] == -1)
 			continue;
@@ -231,8 +232,13 @@ main(int argc, char **argv)
 		    NULL, NULL);
 #endif
 		close(key_fd[i]);
-		if (keys[i] != NULL)
+		if (keys[i] != NULL) {
+			debug3("loaded key at index %d", i);
 			found = 1;
+		}
+		else {
+			debug3("failed to load key at index %d", i);
+		}
 	}
 	if (!found)
 		fatal("no hostkey found");
@@ -279,3 +285,5 @@ main(int argc, char **argv)
 
 	return (0);
 }
+
+// kate: space-indent off
