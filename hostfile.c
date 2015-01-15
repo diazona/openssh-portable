@@ -395,19 +395,29 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 		*found = NULL;
 
 	for (i = 0; i < hostkeys->num_entries; i++) {
-		if (proto == 1 && hostkeys->entries[i].key->type != KEY_RSA1)
+		debug3("checking hostkey %d from file %s, line %u", i, hostkeys->entries[i].file, hostkeys->entries[i].line);
+		if (proto == 1 && hostkeys->entries[i].key->type != KEY_RSA1) {
+			debug3("skipping because we need an RSA1 key and this is not one");
 			continue;
-		if (proto == 2 && hostkeys->entries[i].key->type == KEY_RSA1)
+        }
+		if (proto == 2 && hostkeys->entries[i].key->type == KEY_RSA1) {
+			debug3("skipping because we can't use an RSA1 key but this is one");
 			continue;
-		if (hostkeys->entries[i].marker != want_marker)
+		}
+		if (hostkeys->entries[i].marker != want_marker) {
+			debug3("skipping because the marker is not the desired state");
 			continue;
+		}
 		if (k == NULL) {
-			if (hostkeys->entries[i].key->type != keytype)
+			if (hostkeys->entries[i].key->type != keytype) {
+				debug3("skipping because this key is the wrong type");
 				continue;
+			}
 			end_return = HOST_FOUND;
 			if (found != NULL)
 				*found = hostkeys->entries + i;
 			k = hostkeys->entries[i].key;
+			debug3("found key %d", i);
 			break;
 		}
 		if (want_cert) {
@@ -417,6 +427,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 				end_return = HOST_OK;
 				if (found != NULL)
 					*found = hostkeys->entries + i;
+				debug3("found matching CA for key %d", i);
 				break;
 			}
 		} else {
@@ -424,18 +435,21 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 				end_return = HOST_OK;
 				if (found != NULL)
 					*found = hostkeys->entries + i;
+				debug3("found matching key %d", i);
 				break;
 			}
 			/* A non-maching key exists */
 			end_return = HOST_CHANGED;
 			if (found != NULL)
 				*found = hostkeys->entries + i;
+			debug3("found non-matching key %d", i);
 		}
 	}
 	if (check_key_not_revoked(hostkeys, k) != 0) {
 		end_return = HOST_REVOKED;
 		if (found != NULL)
 			*found = NULL;
+		debug3("key %d was revoked", i);
 	}
 	return end_return;
 }
@@ -494,3 +508,5 @@ add_host_to_hostfile(const char *filename, const char *host, const Key *key,
 	fclose(f);
 	return success;
 }
+
+// kate: space-indent off

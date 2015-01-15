@@ -419,6 +419,7 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 	load_hostkeys(hostkeys, host, sysfile);
 	if (userfile != NULL) {
 		user_hostfile = tilde_expand_filename(userfile, pw->pw_uid);
+		debug3("checking user key file %s", user_hostfile);
 		if (options.strict_modes &&
 		    (stat(user_hostfile, &st) == 0) &&
 		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
@@ -774,3 +775,5 @@ fakepw(void)
 
 	return (&fake);
 }
+
+// kate: space-indent off
