@@ -276,6 +276,7 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 			;
 
 		/* Check if the host name matches. */
+		debug3("checking for hostname matching %s in line %s", host, cp);
 		if (match_hostname(host, cp, (u_int) (cp2 - cp)) != 1) {
 			if (*cp != HASH_DELIM)
 				continue;
