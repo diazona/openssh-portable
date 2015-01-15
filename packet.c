@@ -81,6 +81,8 @@
 #include "ssherr.h"
 #include "roaming.h"
 
+#define PACKET_DEBUG
+
 #ifdef PACKET_DEBUG
 #define DBG(x) x
 #else

@@ -436,6 +436,7 @@ userauth(Authctxt *authctxt, char *authlist)
 		Authmethod *method = authmethod_get(authlist);
 		if (method == NULL)
 			fatal("Permission denied (%s).", authlist);
+		debug("trying method %s", method->name);
 		authctxt->method = method;
 
 		/* reset the per method handler */
@@ -488,6 +489,7 @@ void
 input_userauth_success(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
+	debug3("input_userauth_success");
 
 	if (authctxt == NULL)
 		fatal("input_userauth_success: no authentication context");
@@ -504,6 +506,7 @@ void
 input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
+	debug3("input_userauth_success_unexpected");
 
 	if (authctxt == NULL)
 		fatal("%s: no authentication context", __func__);
@@ -519,6 +522,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	char *authlist = NULL;
 	int partial;
+	debug3("input_userauth_failure(%d, %u, %p)", type, seq, ctxt);
 
 	if (authctxt == NULL)
 		fatal("input_userauth_failure: no authentication context");
@@ -1546,9 +1550,11 @@ userauth_hostbased(Authctxt *authctxt)
 #ifdef DEBUG_PK
 	buffer_dump(&b);
 #endif
-	if (sensitive->external_keysign)
+	if (sensitive->external_keysign) {
+		debug3("invoking ssh-keysign");
 		ok = ssh_keysign(private, &signature, &slen,
 		    buffer_ptr(&b), buffer_len(&b));
+	}
 	else
 		ok = key_sign(private, &signature, &slen,
 		    buffer_ptr(&b), buffer_len(&b));
@@ -1560,6 +1566,9 @@ userauth_hostbased(Authctxt *authctxt)
 		free(pkalg);
 		free(blob);
 		return 0;
+	}
+	else {
+		debug2("key_sign succeeded (ok = %d)", ok);
 	}
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
 	packet_put_cstring(authctxt->server_user);
@@ -1576,7 +1585,9 @@ userauth_hostbased(Authctxt *authctxt)
 	free(pkalg);
 	free(blob);
 
+	debug3("sending packet");
 	packet_send();
+	debug3("packet sent");
 	return 1;
 }
 
@@ -1683,3 +1694,4 @@ authmethods_get(void)
 	return list;
 }
 
+// kate: space-indent off

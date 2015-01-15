@@ -222,7 +222,17 @@ main(int argc, char **argv)
 
 	found = 0;
 	for (i = 0; i < NUM_KEYTYPES; i++) {
-		debug3("attempting to load key at index %d", i);
+		char ifn[256];
+		char ofn[256];
+		int r;
+		snprintf(ifn, sizeof(ifn), "/proc/self/fd/%d", key_fd[i]);
+		if ((r = readlink(ifn, ofn, sizeof(ofn))) != -1) {
+			ofn[r] = '\0';
+		}
+		else {
+			sprintf(ofn, "unavailable");
+		}
+		debug3("attempting to load key at index %d (fn %s)", i, ofn);
 		keys[i] = NULL;
 		if (key_fd[i] == -1)
 			continue;

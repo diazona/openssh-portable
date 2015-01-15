@@ -1098,6 +1098,7 @@ main(int ac, char **av)
 	sensitive_data.external_keysign = 0;
 	if (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication) {
+		debug3("loading private key information");
 		sensitive_data.nkeys = 9;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
@@ -1107,26 +1108,35 @@ main(int ac, char **av)
 		PRIV_START;
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
+		debug3("loading RSA1 key from %s... %s", _PATH_HOST_KEY_FILE, sensitive_data.keys[0] == NULL ? "failed" : "succeeded");
 		sensitive_data.keys[1] = key_load_private_cert(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
+		debug3("loading DSA certificate from %s... %s", _PATH_HOST_DSA_KEY_FILE, sensitive_data.keys[1] == NULL ? "failed" : "succeeded");
 #ifdef OPENSSL_HAS_ECC
 		sensitive_data.keys[2] = key_load_private_cert(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
+		debug3("loading ECDSA certificate from %s... %s", _PATH_HOST_ECDSA_KEY_FILE, sensitive_data.keys[2] == NULL ? "failed" : "succeeded");
 #endif
 		sensitive_data.keys[3] = key_load_private_cert(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
+		debug3("loading RSA certificate from %s... %s", _PATH_HOST_RSA_KEY_FILE, sensitive_data.keys[3] == NULL ? "failed" : "succeeded");
 		sensitive_data.keys[4] = key_load_private_cert(KEY_ED25519,
 		    _PATH_HOST_ED25519_KEY_FILE, "", NULL);
+		debug3("loading ED25519 certificate from %s... %s", _PATH_HOST_ED25519_KEY_FILE, sensitive_data.keys[4] == NULL ? "failed" : "succeeded");
 		sensitive_data.keys[5] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
+		debug3("loading DSA key from %s... %s", _PATH_HOST_DSA_KEY_FILE, sensitive_data.keys[5] == NULL ? "failed" : "succeeded");
 #ifdef OPENSSL_HAS_ECC
 		sensitive_data.keys[6] = key_load_private_type(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL, NULL);
+		debug3("loading ECDSA key from %s... %s", _PATH_HOST_ECDSA_KEY_FILE, sensitive_data.keys[6] == NULL ? "failed" : "succeeded");
 #endif
 		sensitive_data.keys[7] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
+		debug3("loading RSA key from %s... %s", _PATH_HOST_RSA_KEY_FILE, sensitive_data.keys[7] == NULL ? "failed" : "succeeded");
 		sensitive_data.keys[8] = key_load_private_type(KEY_ED25519,
 		    _PATH_HOST_ED25519_KEY_FILE, "", NULL, NULL);
+		debug3("loading ED25519 key from %s... %s", _PATH_HOST_ED25519_KEY_FILE, sensitive_data.keys[8] == NULL ? "failed" : "succeeded");
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
@@ -1135,27 +1145,37 @@ main(int ac, char **av)
 		    sensitive_data.keys[6] == NULL &&
 		    sensitive_data.keys[7] == NULL &&
 		    sensitive_data.keys[8] == NULL) {
+			debug3("loading certs for host-based authentication");
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_DSA_KEY_FILE);
+			debug3("loading DSA certificate from %s... %s", _PATH_HOST_DSA_KEY_FILE, sensitive_data.keys[1] == NULL ? "failed" : "succeeded");
 #ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[2] = key_load_cert(
 			    _PATH_HOST_ECDSA_KEY_FILE);
+			debug3("loading ECDSA certificate from %s... %s", _PATH_HOST_ECDSA_KEY_FILE, sensitive_data.keys[2] == NULL ? "failed" : "succeeded");
 #endif
 			sensitive_data.keys[3] = key_load_cert(
 			    _PATH_HOST_RSA_KEY_FILE);
+			debug3("loading RSA certificate from %s... %s", _PATH_HOST_RSA_KEY_FILE, sensitive_data.keys[3] == NULL ? "failed" : "succeeded");
 			sensitive_data.keys[4] = key_load_cert(
 			    _PATH_HOST_ED25519_KEY_FILE);
+			debug3("loading ED25519 certificate from %s... %s", _PATH_HOST_ED25519_KEY_FILE, sensitive_data.keys[4] == NULL ? "failed" : "succeeded");
 			sensitive_data.keys[5] = key_load_public(
 			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			debug3("loading DSA public key from %s... %s", _PATH_HOST_DSA_KEY_FILE, sensitive_data.keys[5] == NULL ? "failed" : "succeeded");
 #ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[6] = key_load_public(
 			    _PATH_HOST_ECDSA_KEY_FILE, NULL);
+			debug3("loading ECDSA public key from %s... %s", _PATH_HOST_ECDSA_KEY_FILE, sensitive_data.keys[6] == NULL ? "failed" : "succeeded");
 #endif
 			sensitive_data.keys[7] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
+			debug3("loading RSA public key from %s... %s", _PATH_HOST_RSA_KEY_FILE, sensitive_data.keys[7] == NULL ? "failed" : "succeeded");
 			sensitive_data.keys[8] = key_load_public(
 			    _PATH_HOST_ED25519_KEY_FILE, NULL);
+			debug3("loading ED25519 public key from %s... %s", _PATH_HOST_ED25519_KEY_FILE, sensitive_data.keys[8] == NULL ? "failed" : "succeeded");
 			sensitive_data.external_keysign = 1;
+			debug3("external_keysign set");
 		}
 	}
 	/*
@@ -1920,3 +1940,5 @@ main_sigchld_handler(int sig)
 	signal(sig, main_sigchld_handler);
 	errno = save_errno;
 }
+
+// kate: space-indent off

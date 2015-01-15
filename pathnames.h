@@ -14,9 +14,9 @@
 
 #define ETCDIR				"/etc"
 
-#ifndef SSHDIR
+//#ifndef SSHDIR
 #define SSHDIR				ETCDIR "/ssh"
-#endif
+//#endif
 
 #ifndef _PATH_SSH_PIDDIR
 #define _PATH_SSH_PIDDIR		"/var/run"

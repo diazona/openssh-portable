@@ -53,6 +53,8 @@
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
 
+// #define DEBUG_PK
+
 /* openssh private key file format */
 #define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
 #define MARK_END		"-----END OPENSSH PRIVATE KEY-----\n"
@@ -3715,6 +3717,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 
 	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
 	    (char *)passphrase)) == NULL) {
+        debug3("failing on wrong passphrase %s", passphrase);
 		r = SSH_ERR_KEY_WRONG_PASSPHRASE;
 		goto out;
 	}
@@ -3726,11 +3729,13 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		}
 		prv->rsa = EVP_PKEY_get1_RSA(pk);
 		prv->type = KEY_RSA;
+        debug3("found RSA key");
 		name = "rsa w/o comment";
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, prv->rsa, 8);
 #endif
 		if (RSA_blinding_on(prv->rsa, NULL) != 1) {
+            debug3("failing because of RSA blinding");
 			r = SSH_ERR_LIBCRYPTO_ERROR;
 			goto out;
 		}
@@ -3743,6 +3748,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		prv->dsa = EVP_PKEY_get1_DSA(pk);
 		prv->type = KEY_DSA;
 		name = "dsa w/o comment";
+        debug3("found DSA key");
 #ifdef DEBUG_PK
 		DSA_print_fp(stderr, prv->dsa, 8);
 #endif
@@ -3765,17 +3771,20 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 			goto out;
 		}
 		name = "ecdsa w/o comment";
+        debug3("found ECDSA key");
 # ifdef DEBUG_PK
 		if (prv != NULL && prv->ecdsa != NULL)
 			sshkey_dump_ec_key(prv->ecdsa);
 # endif
 #endif /* OPENSSL_HAS_ECC */
 	} else {
+        debug3("invalid format");
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
 	if (commentp != NULL &&
 	    (*commentp = strdup(name)) == NULL) {
+        debug3("comment memory allocation fail");
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}

@@ -51,6 +51,9 @@
 
 #define MAX_KEY_FILE_SIZE	(1024 * 1024)
 
+#define DEBUG_SSH_KEYSIGN 1
+
+
 /* Save a key blob to a file */
 static int
 sshkey_save_private_blob(struct sshbuf *keybuf, const char *filename)
@@ -173,17 +176,39 @@ sshkey_load_private_pem(int fd, int type, const char *passphrase,
 	struct sshbuf *buffer = NULL;
 	int r;
 
+	char ifn[256];
+	char ofn[256];
+	snprintf(ifn, sizeof(ifn), "/proc/self/fd/%d", fd);
+	if ((r = readlink(ifn, ofn, sizeof(ofn))) != -1) {
+		ofn[r] = '\0';
+		debug3("attempting to load key from %s", ofn);
+	}
+#ifdef DEBUG_SSH_KEYSIGN
+	if (passphrase == NULL) {
+		debug3("no passphrase");
+	}
+	else {
+		debug3("passphrase: %s", passphrase);
+	}
+#endif
+
 	*keyp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
 
-	if ((buffer = sshbuf_new()) == NULL)
+	if ((buffer = sshbuf_new()) == NULL) {
+		debug3("allocation failed");
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshkey_load_file(fd, NULL, buffer)) != 0)
+	}
+	if ((r = sshkey_load_file(fd, NULL, buffer)) != 0) {
+		debug3("loading file failed");
 		goto out;
+	}
 	if ((r = sshkey_parse_private_pem_fileblob(buffer, type, passphrase,
-	    keyp, commentp)) != 0)
+	    keyp, commentp)) != 0) {
+		debug3("parsing file failed");
 		goto out;
+	}
 	r = 0;
  out:
 	sshbuf_free(buffer);
@@ -553,3 +578,4 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type)
 	return r;
 }
 
+// kate: space-indent off

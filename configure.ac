@@ -72,6 +72,8 @@ else
 	AC_SUBST([STARTUP_SCRIPT_SHELL], [/bin/sh])
 fi
 
+AC_DEFINE([DEBUG_SSH_KEYSIGN], [], [Debug ssh-keysign])
+
 # System features
 AC_SYS_LARGEFILE
 

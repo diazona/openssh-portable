@@ -46,7 +46,7 @@ ssh_msg_send(int fd, u_char type, Buffer *m)
 	u_char buf[5];
 	u_int mlen = buffer_len(m);
 
-	debug3("ssh_msg_send: type %u", (unsigned int)type & 0xff);
+	debug3("ssh_msg_send: type %u, length %u", (unsigned int)type & 0xff, mlen);
 
 	put_u32(buf, mlen + 1);
 	buf[4] = type;		/* 1st byte of payload is mesg-type */
